@@ -56,26 +56,6 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="..\paket-files\FractalProject\Fractal\src\Bindings.React.fs">
-        <Paket>True</Paket>
-        <Link>paket-files/Bindings.React.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\FractalProject\Fractal\src\Bindings.MaterialUI.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Bindings.MaterialUI.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\FractalProject\Fractal\src\Bindings.Postal.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Bindings.Postal.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\FractalProject\Fractal\src\Fractal.Core.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fractal.Core.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\FractalProject\Fractal\src\Fractal.DOM.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fractal.DOM.fs</Link>
-    </Compile>
     <Compile Include="App.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
@@ -83,6 +63,9 @@
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Fractal">
+      <HintPath>..\lib\Fractal.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

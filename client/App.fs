@@ -47,7 +47,7 @@ module App =
             todos |> List.map (fun t -> if t.id = n then {t with completed = t.completed |> not} else t )
             |> setState
         )
-
+        
         do Message.subscribe "todo.remove" (fun n ->
             todos |> List.filter (fun t -> t.id <> n) |> setState
         )
@@ -80,7 +80,7 @@ module App =
 
     type TodoItemState = {editingText : string}
     type TodoItemProps = {todo : Todo; editing : bool}
-    type todoItem =  ReactComponent<TodoItemProps, TodoItemState>
+    type todoItem =  FractalComponent<TodoItemProps, TodoItemState>
 
     let TodoItem props =
         let onToggle (c : todoItem) () =
@@ -115,47 +115,42 @@ module App =
         let getInitialState (c : todoItem) =
             {editingText = c.props.todo.title }
 
-        let shouldComponentUpdate (c : todoItem) (nextProps,nextState) =
+        let shouldComponentUpdate nextProps nextState (c : todoItem)=
             nextProps.todo <> c.props.todo ||
             nextProps.editing <> c.props.editing ||
             nextState.editingText <> c.state.editingText
 
-        let componentDidUpdate (c : todoItem) (prevProps) =
+        let componentDidUpdate prevProps (prevState : obj) (c : todoItem)  =
             if prevProps.editing |> not && c.props.editing then
                 let node = Globals.findDOMNode(c.refs.["editField"]) |> unbox<JQuery>
                 node.focus() |> ignore
-        ()
 
         let render (c : todoItem) =
-            let liAtr = if c.props.todo.completed then obj ["className" ==> "completed"]
-                        elif c.props.editing then obj ["className" ==> "editing"]
-                        else null
-
-            Globals.createElement ("li", liAtr,
-                Globals.createElement ("div", obj ["className" ==> "view"],
-                    Globals.createElement("input", obj ["className" ==> "toggle"
-                                                        "type" ==> "checkbox"
-                                                        "checked" ==> c.props.todo.completed
-                                                        "onChange" ==> onToggle c]),
-                    Globals.createElement("label", obj ["onDoubleClick" ==> handleEdit c], c.props.todo.title),
-                    Globals.createElement("button", obj ["className" ==> "destroy"
-                                                         "onClick" ==> onDestroy c ])
+            DOM.li ((if c.props.todo.completed then obj ["className" ==> "completed"]
+                     elif c.props.editing then obj ["className" ==> "editing"]
+                     else null),
+                DOM.div (obj ["className" ==> "view"],
+                    DOM.input( obj ["className" ==> "toggle"
+                                    "type" ==> "checkbox"
+                                    "checked" ==> c.props.todo.completed
+                                    "onChange" ==> onToggle c]),
+                    DOM.label(obj ["onDoubleClick" ==> handleEdit c], c.props.todo.title),
+                    DOM.button(obj ["className" ==> "destroy"
+                                    "onClick" ==> onDestroy c ])
                 ),
-                Globals.createElement("input", obj ["ref" ==> "editField"
-                                                    "className" ==> "edit"
-                                                    "value" ==> c.state.editingText
-                                                    "onBlur" ==> handleSubmit c
-                                                    "onChange" ==> handleChange c
-                                                    "onKeyDown" ==> handleKeyDown c])
+                DOM.input(obj [ "ref" ==> "editField"
+                                "className" ==> "edit"
+                                "value" ==> c.state.editingText
+                                "onBlur" ==> handleSubmit c
+                                "onChange" ==> handleChange c
+                                "onKeyDown" ==> handleKeyDown c])
             )
-        React.defineComponent render
-        |> fun c ->
-            c.``getInitialState <-``(fun _ -> JS.this |> getInitialState)
-            c.``shouldComponentUpdate <-``(fun p s _ -> shouldComponentUpdate (JS.this) (p,s) )
-            c.``componentDidUpdate <-``(fun p _ _ -> componentDidUpdate (JS.this) p)
-            c
-        |> React.createComponent
-        |> fun n -> Globals.createElement(n, props, null)
+        Fractal.defineComponent render
+        |> Fractal.getInitialState getInitialState
+        |> Fractal.shouldComponentUpdate shouldComponentUpdate
+        |> Fractal.componentDidUpdate componentDidUpdate
+        |> Fractal.createComponent
+        |> Fractal.createElement props
 
     type FilterTodo =
         | All
@@ -163,7 +158,7 @@ module App =
         | Active
 
     type TodoFooterProps = {count : int; completeCount : int; canUndo : bool; canRedo : bool; nowShowing : FilterTodo}
-    type todoFooter = ReactComponent<TodoFooterProps, Nothing>
+    type todoFooter = FractalComponent<TodoFooterProps, Nothing>
 
     let TodoFooter props =
         let onClearCompleted () =
@@ -177,66 +172,63 @@ module App =
 
         let render (c : todoFooter) =
             let clearButton =
-                Globals.createElement("button", obj ["className" ==> "clear-completed"
-                                                     "onClick" ==> onClearCompleted
-                                                     (if c.props.completeCount > 0 then
-                                                         "" ==> null
-                                                      else "disabled" ==> "disabled")
-                ], "Clear completed")
+                DOM.button( obj ["className" ==> "clear-completed"
+                                 "onClick" ==> onClearCompleted
+                                 (if c.props.completeCount > 0 then
+                                     "" ==> null
+                                  else "disabled" ==> "disabled")], "Clear completed")
 
             let undoButton =
-                Globals.createElement("button", obj ["className" ==> "clear-completed"
-                                                     "onClick" ==> onUndo
-                                                     (if c.props.canUndo then
-                                                          "" ==> null
-                                                      else "disabled" ==> "disabled")
-                ], "Undo")
+                DOM.button( obj ["className" ==> "clear-completed"
+                                 "onClick" ==> onUndo
+                                 (if c.props.canUndo then
+                                      "" ==> null
+                                  else "disabled" ==> "disabled")], "Undo")
 
             let redoButton  =
-                Globals.createElement("button", obj ["className" ==> "clear-completed"
-                                                     "onClick" ==> onRedo
-                                                     (if c.props.canRedo then
-                                                         "" ==> null
-                                                      else "disabled" ==> "disabled")
-                ], "Redo")
+                DOM.button( obj ["className" ==> "clear-completed"
+                                 "onClick" ==> onRedo
+                                 (if c.props.canRedo then
+                                     "" ==> null
+                                  else "disabled" ==> "disabled")], "Redo")
 
-            Globals.createElement("footer", obj ["className" ==> "footer"],
-                Globals.createElement("span", obj ["className" ==> "todo-count"],
-                    Globals.createElement("strong", null, c.props.count),
+            DOM.footer( obj ["className" ==> "footer"],
+                DOM.span( obj ["className" ==> "todo-count"],
+                    DOM.strong(null, c.props.count),
                     " todo(s) left"
                 ),
-                Globals.createElement("ul", obj ["className" ==> "filters"],
-                    Globals.createElement("li", null,
-                        Globals.createElement("a", obj ["href" ==> "#/"
-                                                        (if c.props.nowShowing = FilterTodo.All then
-                                                            "className" ==> "selected"
-                                                         else "className" ==> "")], "All"),
+                DOM.ul( obj ["className" ==> "filters"],
+                    DOM.li( null,
+                        DOM.a( obj ["href" ==> "#/"
+                                    (if c.props.nowShowing = FilterTodo.All then
+                                        "className" ==> "selected"
+                                     else "className" ==> "")], "All"),
                         " ",
                         DOM.a (obj ["href" ==> "#/active"
                                     (if c.props.nowShowing = FilterTodo.Active then
                                         "className" ==> "selected"
                                      else "className" ==> "")], "Active"),
                         " ",
-                        Globals.createElement("a", obj ["href" ==> "#/completed"
-                                                        (if c.props.nowShowing = FilterTodo.Completed then
-                                                            "className" ==> "selected"
-                                                         else "className" ==> "")], "Completed")
+                        DOM.a( obj ["href" ==> "#/completed"
+                                    (if c.props.nowShowing = FilterTodo.Completed then
+                                        "className" ==> "selected"
+                                     else "className" ==> "")], "Completed")
                     )
                 ),
                 clearButton,
                 undoButton,
                 redoButton
             )
-        React.defineComponent render
-        |> React.createComponent
-        |> fun n -> Globals.createElement(n, props, null)
+        Fractal.defineComponent render
+        |> Fractal.createComponent
+        |> Fractal.createElement props
 
     type TodoAppProps = {model : TodoRepository}
     type TodoAppState = {nowShowing : FilterTodo; editing : Guid option; todos: Todo array }
-    type todoApp = ReactComponent<TodoAppProps, TodoAppState>
+    type todoApp = FractalComponent<TodoAppProps, TodoAppState>
 
     let TodoApp props =
-        let getInitialState () =
+        let getInitialState (c : todoApp) =
             {nowShowing = FilterTodo.All; editing = None; todos = [||]}
 
         let componentDidMount (c : todoApp) =
@@ -270,10 +262,9 @@ module App =
 
         let render (c : todoApp) =
             let todos = c.state.todos
-            let todoItems = todos
-                            |> Array.map(fun t ->
-                                let ed = if c.state.editing.IsSome then c.state.editing.Value = t.id else false
-                                TodoItem {todo = t; editing = ed }  )
+            let todoItems = todos |> Array.map(fun t ->
+                let ed = if c.state.editing.IsSome then c.state.editing.Value = t.id else false
+                TodoItem {todo = t; editing = ed }  )
             let activeCount = todos |> Array.fold (fun acc t ->
                 if t.completed then acc else acc + 1 ) 0
             let completedCount = todos.Length - activeCount
@@ -288,36 +279,34 @@ module App =
                 TodoFooter props
 
             let main =
-                Globals.createElement("section", obj ["className" ==> "main"],
-                    Globals.createElement("input", obj ["className" ==> "toggle-all"
-                                                        "type" ==> "checkbox"
-                                                        "onChange" ==> toggleAll c
-                                                        "checked" ==> (activeCount = 0)]),
-                    Globals.createElement("ul", obj ["className" ==> "todo-list"], todoItems)
+                DOM.section( obj ["className" ==> "main"],
+                    DOM.input( obj ["className" ==> "toggle-all"
+                                    "type" ==> "checkbox"
+                                    "onChange" ==> toggleAll c
+                                    "checked" ==> (activeCount = 0)]),
+                    DOM.ul( obj ["className" ==> "todo-list"], todoItems)
                 )
 
-            Globals.createElement("div", (null |> unbox<obj>),
-                Globals.createElement("header", obj ["className" ==> "header"],
-                    Globals.createElement("h1", null, "todos" ),
-                    Globals.createElement("input", obj ["ref" ==> "newField"
-                                                        "className" ==> "new-todo"
-                                                        "placeholder" ==> "What needs to be done?"
-                                                        "onKeyDown" ==> handleKeyDown c
-                                                        "autoFocus" ==> true])
+            DOM.div( (null |> unbox<obj>),
+                DOM.header( obj ["className" ==> "header"],
+                    DOM.h1( null, "todos" ),
+                    DOM.input( obj ["ref" ==> "newField"
+                                    "className" ==> "new-todo"
+                                    "placeholder" ==> "What needs to be done?"
+                                    "onKeyDown" ==> handleKeyDown c
+                                    "autoFocus" ==> true])
                 ),
                 (if todos.Length > 0 then main else null |> unbox<DOMElement<obj>>),
                 footer)
 
-        React.defineComponent render
-        |> fun c ->
-            c.``getInitialState <-``(fun _ -> JS.this |> getInitialState)
-            c.``componentDidMount <-``(fun _ -> JS.this |> componentDidMount)
-            c
-        |> React.createComponent
-        |> fun n -> Globals.createElement(n, props, null)
+        Fractal.defineComponent render
+        |> Fractal.getInitialState getInitialState
+        |> Fractal.componentDidMount componentDidMount
+        |> Fractal.createComponent
+        |> Fractal.createElement props
 
     let app () =
         { model = TodoRepository () }
         |> TodoApp
-        |> React.render "todoapp"
+        |> Fractal.render "todoapp"
         ()

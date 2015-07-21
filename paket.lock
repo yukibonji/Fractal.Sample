@@ -6,11 +6,3 @@ NUGET
     FunScript.TypeScript.Binding.jquery (1.1.0.37)
       FunScript.TypeScript.Binding.lib (>= 1.1.0.37)
     FunScript.TypeScript.Binding.lib (1.1.0.37)
-GITHUB
-  remote: FractalProject/Fractal
-  specs:
-    src/Bindings.MaterialUI.fs (b34780e214affc4c0482bf9e6c698a51a9301fc4)
-    src/Bindings.Postal.fs (b34780e214affc4c0482bf9e6c698a51a9301fc4)
-    src/Bindings.React.fs (b34780e214affc4c0482bf9e6c698a51a9301fc4)
-    src/Fractal.Core.fs (b34780e214affc4c0482bf9e6c698a51a9301fc4)
-    src/Fractal.DOM.fs (b34780e214affc4c0482bf9e6c698a51a9301fc4)

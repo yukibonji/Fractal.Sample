@@ -1,0 +1,15 @@
+/*
+
+app-template.css overrides
+
+remove this comment if used
+remove this file if not
+
+*/
+body {
+    max-width: 750px
+}
+
+.clear-completed {
+    min-width: 80px
+}

@@ -1,0 +1,12 @@
+source https://nuget.org/api/v2
+
+nuget FAKE
+nuget FunScript
+nuget FunScript.TypeScript.Binding.jquery
+nuget FunScript.TypeScript.Binding.lib
+
+github FractalProject/Fractal src/Bindings.React.fs
+github FractalProject/Fractal src/Bindings.MaterialUI.fs
+github FractalProject/Fractal src/Bindings.Postal.fs
+github FractalProject/Fractal src/Fractal.Core.fs
+github FractalProject/Fractal src/Fractal.DOM.fs

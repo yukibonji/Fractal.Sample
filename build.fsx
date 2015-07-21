@@ -1,34 +1,34 @@
 #r "packages/FAKE/tools/FakeLib.dll"
+#r "packages/FunScript/lib/net40/FunScript.dll"
+#r "packages/FunScript/lib/net40/FunScript.Interop.dll"
+#r "packages/FunScript.TypeScript.Binding.lib/lib/net40/FunScript.TypeScript.Binding.lib.dll"
+#r "packages/FunScript.TypeScript.Binding.jquery/lib/net40/FunScript.TypeScript.Binding.jquery.dll"
+#r "lib/Fractal.dll"
+
+#load "client/App.fsx"
+#load "client/Main.fsx"
+
 
 open Fake
 open Fake.AssemblyInfoFile
 open System
 open System.IO
 
-let buildDir = "./build"
-let applicationOutput = "app"
-
-let clientGeneratorProj = "client" @@ "client.fsproj"
-let clientGeneratorExe = buildDir @@ "client.exe"
-let clientGeneratorOutput = applicationOutput @@ "client.js"
-
-let browserify = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) @@ "npm" @@ "browserify.cmd"
-
 Target "Default" DoNothing
 
-Target "BuildClient" (fun _ ->
-    !! clientGeneratorProj
-    |> MSBuildRelease buildDir "Build"
-    |> Log "Build-Output: "
+Target "BuildClient" (fun _ -> Fractal.Sample.Generator.generate "app/client.js")
 
+Target "NpmInstall" (fun _ ->
     let result = ExecProcess (fun info ->
-            info.FileName <- clientGeneratorExe
-            info.Arguments <- clientGeneratorOutput) System.TimeSpan.MaxValue
-    if result <> 0 then failwithf "Error during running ClientGenerator"
-)
-
+            info.FileName <- "./npm.cmd"
+            info.Arguments <- "install") System.TimeSpan.MaxValue
+    if result <> 0 then failwithf "Error during running npm "
+) //TODO: FIX IT
 
 Target "Browserify" (fun _ ->
+    let browserify = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) @@ "npm" @@ "browserify.cmd"
+
+
     let result = ExecProcess (fun info ->
             info.FileName <- browserify
             info.WorkingDirectory <- "app"
@@ -38,6 +38,7 @@ Target "Browserify" (fun _ ->
 
 
 "BuildClient"
+//==> "NpmInstall"
   ==> "Browserify"
   ==> "Default"
 

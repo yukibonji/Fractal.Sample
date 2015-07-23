@@ -106,7 +106,7 @@ module App =
                 DOM.button([| ClassName "clear-completed"; OnClick (onUndo); Disabled (c.props.canUndo) |], "Undo")
 
             let redoButton =
-                DOM.button([| ClassName "clear-completed"; OnClick (onUndo); Disabled (c.props.canRedo) |], "Redo")
+                DOM.button([| ClassName "clear-completed"; OnClick (onRedo); Disabled (c.props.canRedo) |], "Redo") 
 
             DOM.footer( [| ClassName "footer" |],
                 DOM.span( [| ClassName "todo-count" |],
@@ -117,9 +117,9 @@ module App =
                     DOM.li( [||],
                         DOM.a( [| Href "#/"; ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "All"),
                         " ",
-                        DOM.a( [| Href "#/active"; ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "Active"),
+                        DOM.a( [| Href "#/active"; ClassName (if c.props.nowShowing = FilterTodo.Active then "selected" else "" ) |]  , "Active"),
                         " ",
-                        DOM.a( [|Href "#/completed"; ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "Completed")
+                        DOM.a( [|Href "#/completed"; ClassName (if c.props.nowShowing = FilterTodo.Completed then "selected" else "" ) |]  , "Completed")
                     )
                 ),
                 clearButton,

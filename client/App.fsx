@@ -18,13 +18,13 @@ module App =
     type todoItem =  FractalComponent<TodoItemProps, TodoItemState>
 
     let TodoItem props =
-        let onToggle (c : todoItem) () =
+        let onToggle (c : todoItem) (e : FormEvent) =
             Message.publish "todo.toggle" c.props.todo.id
 
-        let onDestroy (c : todoItem) () =
+        let onDestroy (c : todoItem) (e : React.MouseEvent) =
             Message.publish "todo.remove" c.props.todo.id
 
-        let handleSubmit (c : todoItem) (e : obj) =
+        let handleSubmit (c : todoItem) (e : React.FocusEvent) =
             let v = c.state.editingText.Trim()
             if String.IsNullOrEmpty v |> not then
                 c.setState {editingText = v}
@@ -33,18 +33,18 @@ module App =
             else
                 Message.publish "todo.remove" c.props.todo.id
 
-        let handleEdit (c : todoItem) (e : obj) =
+        let handleEdit (c : todoItem) (e : React.MouseEvent) =
             Message.publish "todo.view.edit" c.props.todo.id
             c.setState {editingText = c.props.todo.title}
 
-        let handleKeyDown (c : todoItem) (e : KeyboardEvent) =
+        let handleKeyDown (c : todoItem) (e : React.KeyboardEvent) =
             if e.which = 27. then
                 c.setState {editingText = c.props.todo.title}
                 Message.publish "todo.view.editDone" ()
             elif e.which = 13. then
-                handleSubmit c e
+                handleSubmit c (e |> unbox<React.FocusEvent>)
 
-        let handleChange (c : todoItem) (e : Event) =
+        let handleChange (c : todoItem) (e : FormEvent) =
             c.setState {editingText = e.target.value }
 
         let getInitialState (c : todoItem) =
@@ -61,24 +61,15 @@ module App =
                 node.focus() |> ignore
 
         let render (c : todoItem) =
-            DOM.li ((if c.props.todo.completed then obj ["className" ==> "completed"]
-                     elif c.props.editing then obj ["className" ==> "editing"]
-                     else null),
-                DOM.div (obj ["className" ==> "view"],
-                    DOM.input( obj ["className" ==> "toggle"
-                                    "type" ==> "checkbox"
-                                    "checked" ==> c.props.todo.completed
-                                    "onChange" ==> onToggle c]),
-                    DOM.label(obj ["onDoubleClick" ==> handleEdit c], c.props.todo.title),
-                    DOM.button(obj ["className" ==> "destroy"
-                                    "onClick" ==> onDestroy c ])
-                ),
-                DOM.input(obj [ "ref" ==> "editField"
-                                "className" ==> "edit"
-                                "value" ==> c.state.editingText
-                                "onBlur" ==> handleSubmit c
-                                "onChange" ==> handleChange c
-                                "onKeyDown" ==> handleKeyDown c])
+            DOM.li ((if c.props.todo.completed then [|ClassName "completed"|]
+                     elif c.props.editing then [|ClassName "editing"|]
+                     else [| |]),
+                DOM.div ([|ClassName "view"|],
+                    DOM.input( [| ClassName "toggle"; Attr.Type "checkbox"; Checked c.props.todo.completed; OnChange (onToggle c)|]),
+                    DOM.label([| OnDoubleClick (handleEdit c) |], c.props.todo.title),
+                    DOM.button([| ClassName "destroy"; OnClick (onDestroy c) |])),
+                DOM.input([| Ref "editField"; ClassName "edit"; Value c.state.editingText;
+                             OnBlur (handleSubmit c); OnChange ( handleChange c); OnKeyDown (handleKeyDown c) |])
             )
         Fractal.defineComponent render
         |> Fractal.getInitialState getInitialState
@@ -92,62 +83,43 @@ module App =
         | Completed
         | Active
 
-    type TodoFooterProps = {count : int; completeCount : int; canUndo : bool; canRedo : bool; nowShowing : FilterTodo}
+    type TodoFooterProps = {
+        count : int; completeCount : int; canUndo : bool;
+        canRedo : bool; nowShowing : FilterTodo}
     type todoFooter = FractalComponent<TodoFooterProps, Nothing>
 
     let TodoFooter props =
-        let onClearCompleted () =
+        let onClearCompleted (e : React.MouseEvent) =
             Message.publish "todo.repository.clearSelected" ()
 
-        let onUndo () =
+        let onUndo (e : React.MouseEvent) =
             Message.publish "todo.repository.undo" ()
 
-        let onRedo () =
+        let onRedo (e : React.MouseEvent) =
             Message.publish "todo.repository.redo" ()
 
         let render (c : todoFooter) =
             let clearButton =
-                DOM.button( obj ["className" ==> "clear-completed"
-                                 "onClick" ==> onClearCompleted
-                                 (if c.props.completeCount > 0 then
-                                     "" ==> null
-                                  else "disabled" ==> "disabled")], "Clear completed")
+                DOM.button([| ClassName "clear-completed"; OnClick (onClearCompleted); Disabled (c.props.completeCount > 0) |], "Clear completed")
 
             let undoButton =
-                DOM.button( obj ["className" ==> "clear-completed"
-                                 "onClick" ==> onUndo
-                                 (if c.props.canUndo then
-                                      "" ==> null
-                                  else "disabled" ==> "disabled")], "Undo")
+                DOM.button([| ClassName "clear-completed"; OnClick (onUndo); Disabled (c.props.canUndo) |], "Undo")
 
-            let redoButton  =
-                DOM.button( obj ["className" ==> "clear-completed"
-                                 "onClick" ==> onRedo
-                                 (if c.props.canRedo then
-                                     "" ==> null
-                                  else "disabled" ==> "disabled")], "Redo")
+            let redoButton =
+                DOM.button([| ClassName "clear-completed"; OnClick (onUndo); Disabled (c.props.canRedo) |], "Redo")
 
-            DOM.footer( obj ["className" ==> "footer"],
-                DOM.span( obj ["className" ==> "todo-count"],
-                    DOM.strong(null, c.props.count),
+            DOM.footer( [| ClassName "footer" |],
+                DOM.span( [| ClassName "todo-count" |],
+                    DOM.strong([| |], c.props.count),
                     " todo(s) left"
                 ),
-                DOM.ul( obj ["className" ==> "filters"],
-                    DOM.li( null,
-                        DOM.a( obj ["href" ==> "#/"
-                                    (if c.props.nowShowing = FilterTodo.All then
-                                        "className" ==> "selected"
-                                     else "className" ==> "")], "All"),
+                DOM.ul( [| ClassName "filters" |],
+                    DOM.li( [||],
+                        DOM.a( [| Href "#/"; ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "All"),
                         " ",
-                        DOM.a (obj ["href" ==> "#/active"
-                                    (if c.props.nowShowing = FilterTodo.Active then
-                                        "className" ==> "selected"
-                                     else "className" ==> "")], "Active"),
+                        DOM.a( [| Href "#/active"; ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "Active"),
                         " ",
-                        DOM.a( obj ["href" ==> "#/completed"
-                                    (if c.props.nowShowing = FilterTodo.Completed then
-                                        "className" ==> "selected"
-                                     else "className" ==> "")], "Completed")
+                        DOM.a( [|Href "#/completed"; ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "Completed")
                     )
                 ),
                 clearButton,
@@ -182,7 +154,7 @@ module App =
             //TODO ROUTING
             ()
 
-        let handleKeyDown (c : todoApp) (e : KeyboardEvent) =
+        let handleKeyDown (c : todoApp) (e : React.KeyboardEvent) =
             if e.which = 13. then
                 e.preventDefault()
                 let v = Globals.findDOMNode(c.refs.["newField"]).value.Trim()
@@ -191,7 +163,7 @@ module App =
                     |> Message.publish "todo.new"
                     Globals.findDOMNode(c.refs.["newField"]).value <- ""
 
-        let toggleAll (c : todoApp) (e : Event) =
+        let toggleAll (c : todoApp) (e : FormEvent) =
             e.target.check
             |> Message.publish "todo.repository.toggleAll"
 
@@ -214,22 +186,15 @@ module App =
                 TodoFooter props
 
             let main =
-                DOM.section( obj ["className" ==> "main"],
-                    DOM.input( obj ["className" ==> "toggle-all"
-                                    "type" ==> "checkbox"
-                                    "onChange" ==> toggleAll c
-                                    "checked" ==> (activeCount = 0)]),
-                    DOM.ul( obj ["className" ==> "todo-list"], todoItems)
+                DOM.section( [| ClassName "main" |],
+                    DOM.input( [| ClassName "toggle-all"; Attr.Type "checkbox"; OnChange (toggleAll c); Checked (activeCount = 0) |]),
+                    DOM.ul( [| ClassName "todo-list" |], todoItems)
                 )
 
-            DOM.div( (null |> unbox<obj>),
-                DOM.header( obj ["className" ==> "header"],
-                    DOM.h1( null, "todos" ),
-                    DOM.input( obj ["ref" ==> "newField"
-                                    "className" ==> "new-todo"
-                                    "placeholder" ==> "What needs to be done?"
-                                    "onKeyDown" ==> handleKeyDown c
-                                    "autoFocus" ==> true])
+            DOM.div( [||],
+                DOM.header( [|ClassName "header" |],
+                    DOM.h1( [||], "todos" ),
+                    DOM.input( [| Ref "newField"; ClassName "new-todo"; Placeholder "What needs to be done?"; OnKeyDown (handleKeyDown c); AutoFocus true |])
                 ),
                 (if todos.Length > 0 then main else null |> unbox<DOMElement<obj>>),
                 footer)

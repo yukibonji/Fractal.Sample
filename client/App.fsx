@@ -2,9 +2,7 @@
 
 namespace Fractal.Sample
 
-open FunScript.TypeScript.Mui
-open FunScript.TypeScript.React
-open FunScript.TypeScript
+open FunScript.TypeScript 
 open FunScript
 open Fractal
 open System.Collections.Generic
@@ -58,7 +56,7 @@ module App =
 
             ComponentDidUpdate (fun prevProps prevState (c : todoItem) ->
                 if prevProps.editing |> not && c.props.editing then
-                    let node = Globals.findDOMNode(c.refs.["editField"]) |> unbox<JQuery>
+                    let node = Fractal.findDOMNode(c.refs.["editField"]) |> unbox<JQuery>
                     node.focus() |> ignore)
 
             Render ( fun (c : todoItem) ->
@@ -133,11 +131,11 @@ module App =
         let handleKeyDown (c : todoApp) (e : React.KeyboardEvent) =
             if e.which = 13. then
                 e.preventDefault()
-                let v = Globals.findDOMNode(c.refs.["newField"]).value.Trim()
+                let v = Fractal.findDOMNode(c.refs.["newField"]).value.Trim()
                 if String.IsNullOrEmpty v |> not then
                     {id = Guid.NewGuid(); title = v; completed = false }
                     |> Message.publish "todo.new"
-                    Globals.findDOMNode(c.refs.["newField"]).value <- ""
+                    Fractal.findDOMNode(c.refs.["newField"]).value <- ""
 
         let toggleAll (c : todoApp) (e : FormEvent) =
             e.target.check
@@ -148,16 +146,16 @@ module App =
             GetInitialState (fun (c : todoApp) -> {nowShowing = FilterTodo.All; editing = None; todos = [||]})
 
             ComponentDidMount (fun (c : todoApp) ->
-                do Message.subscribe "todo.view.editDone" (fun n ->
+                Message.subscribe "todo.view.editDone" (fun n ->
                     c.setState({c.state with editing = None})
-                )
-                do Message.subscribe "todo.view.edit" (fun n ->
-                c.setState({c.state with editing = Some n})
-                )
+                ) |> ignore
+                Message.subscribe "todo.view.edit" (fun n ->
+                    c.setState({c.state with editing = Some n})
+                ) |> ignore
 
-                do Message.subscribe "todo.repository.changed" (fun n ->
+                Message.subscribe "todo.repository.changed" (fun n ->
                     c.setState {c.state with todos = c.props.model.getState () |> List.toArray}
-                )
+                ) |> ignore
             )
 
             Render (fun (c : todoApp) ->

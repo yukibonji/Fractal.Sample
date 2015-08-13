@@ -2,8 +2,7 @@
 
 namespace Fractal.Sample
 
-open FunScript.TypeScript 
-open FunScript
+
 open Fractal
 open System.Collections.Generic
 open System
@@ -17,12 +16,12 @@ module App =
 
     module TodoItemHandlers =
         let onToggle (c : todoItem) (e : FormEvent) =
-            Message.publish "todo.toggle" c.props.todo.id
+            Message.publish "todo.toggle" c. props.todo.id
 
-        let onDestroy (c : todoItem) (e : React.MouseEvent) =
+        let onDestroy (c : todoItem) (e : MouseEvent) =
             Message.publish "todo.remove" c.props.todo.id
 
-        let handleSubmit (c : todoItem) (e : React.FocusEvent) =
+        let handleSubmit (c : todoItem) (e : FocusEvent) =
             let v = c.state.editingText.Trim()
             if String.IsNullOrEmpty v |> not then
                 c.setState {editingText = v}
@@ -31,16 +30,16 @@ module App =
             else
                 Message.publish "todo.remove" c.props.todo.id
 
-        let handleEdit (c : todoItem) (e : React.MouseEvent) =
+        let handleEdit (c : todoItem) (e : MouseEvent) =
             Message.publish "todo.view.edit" c.props.todo.id
             c.setState {editingText = c.props.todo.title}
 
-        let handleKeyDown (c : todoItem) (e : React.KeyboardEvent) =
+        let handleKeyDown (c : todoItem) (e : KeyboardEvent) =
             if e.which = 27. then
                 c.setState {editingText = c.props.todo.title}
                 Message.publish "todo.view.editDone" ()
             elif e.which = 13. then
-                handleSubmit c (e |> unbox<React.FocusEvent>)
+                handleSubmit c (e |> unbox<FocusEvent>)
 
         let handleChange (c : todoItem) (e : FormEvent) =
             c.setState {editingText = e.target.value }
@@ -56,8 +55,8 @@ module App =
 
             ComponentDidUpdate (fun prevProps prevState (c : todoItem) ->
                 if prevProps.editing |> not && c.props.editing then
-                    let node = Fractal.findDOMNode(c.refs.["editField"]) |> unbox<JQuery>
-                    node.focus() |> ignore)
+                    let node = Fractal.findDOMNode(c.refs.["editField"])
+                    node?focus() |> ignore)
 
             Render ( fun (c : todoItem) ->
                 DOM.li ((if c.props.todo.completed then [|ClassName "completed"|]
@@ -83,13 +82,13 @@ module App =
     type todoFooter = FractalComponent<TodoFooterProps, Nothing>
 
     module TodoFooterHandlers =
-        let onClearCompleted (e : React.MouseEvent) =
+        let onClearCompleted (e : MouseEvent) =
             Message.publish "todo.repository.clearSelected" ()
 
-        let onUndo (e : React.MouseEvent) =
+        let onUndo (e : MouseEvent) =
             Message.publish "todo.repository.undo" ()
 
-        let onRedo (e : React.MouseEvent) =
+        let onRedo (e : MouseEvent) =
             Message.publish "todo.repository.redo" ()
 
     let TodoFooter =
@@ -128,9 +127,9 @@ module App =
     type todoApp = FractalComponent<TodoAppProps, TodoAppState>
 
     module TodoAppHandlers =
-        let handleKeyDown (c : todoApp) (e : React.KeyboardEvent) =
-            if e.which = 13. then
-                e.preventDefault()
+        let handleKeyDown (c : todoApp) (e : KeyboardEvent) =
+            if e. which = 13. then
+                e.preventDefault()       
                 let v = Fractal.findDOMNode(c.refs.["newField"]).value.Trim()
                 if String.IsNullOrEmpty v |> not then
                     {id = Guid.NewGuid(); title = v; completed = false }
@@ -187,7 +186,7 @@ module App =
                         DOM.h1( [||], "todos" ),
                         DOM.input( [| Ref "newField"; ClassName "new-todo"; Placeholder "What needs to be done?"; OnKeyDown (TodoAppHandlers.handleKeyDown c); AutoFocus true |])
                     ),
-                    (if todos.Length > 0 then main else null |> unbox<DOMElement<obj>>),
+                    (if todos.Length > 0 then main else null |> unbox<FractalElement<obj>>),
                     footer))
         |]
 

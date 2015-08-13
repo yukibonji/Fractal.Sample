@@ -2,9 +2,6 @@
 
 namespace Fractal.Sample
 
-open FunScript.TypeScript.Mui
-open FunScript.TypeScript.React
-open FunScript.TypeScript
 open FunScript
 open Fractal
 open System.Collections.Generic

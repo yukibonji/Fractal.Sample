@@ -119,7 +119,7 @@ module App =
                     ),
                     clearButton,
                     undoButton,
-                    redoButton)
+                    redoButton) 
                 )|]
 
     type TodoAppProps = {model : TodoRepository}
@@ -129,7 +129,7 @@ module App =
     module TodoAppHandlers =
         let handleKeyDown (c : todoApp) (e : KeyboardEvent) =
             if e. which = 13. then
-                e.preventDefault()       
+                e.preventDefault()
                 let v = Fractal.findDOMNode(c.refs.["newField"]).value.Trim()
                 if String.IsNullOrEmpty v |> not then
                     {id = Guid.NewGuid(); title = v; completed = false }

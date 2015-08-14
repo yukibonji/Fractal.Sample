@@ -95,13 +95,13 @@ module App =
         Fractal.createComponent [|
             Render (fun (c : todoFooter) ->
                 let clearButton =
-                    DOM.button([| ClassName "clear-completed"; OnClick (TodoFooterHandlers.onClearCompleted); Disabled (c.props.completeCount > 0) |], "Clear completed")
+                    DOM.button([| ClassName "clear-completed"; OnClick (TodoFooterHandlers.onClearCompleted); Disabled (c.props.completeCount = 0 ) |], "Clear completed")
 
                 let undoButton =
-                    DOM.button([| ClassName "clear-completed"; OnClick (TodoFooterHandlers.onUndo); Disabled (c.props.canUndo) |], "Undo")
+                    DOM.button([| ClassName "clear-completed"; OnClick (TodoFooterHandlers.onUndo); Disabled (c.props.canUndo |> not) |], "Undo")
 
                 let redoButton =
-                    DOM.button([| ClassName "clear-completed"; OnClick (TodoFooterHandlers.onRedo); Disabled (c.props.canRedo) |], "Redo")
+                    DOM.button([| ClassName "clear-completed"; OnClick (TodoFooterHandlers.onRedo); Disabled (c.props.canRedo |> not) |], "Redo")
 
                 DOM.footer( [| ClassName "footer" |],
                     DOM.span( [| ClassName "todo-count" |],
@@ -119,7 +119,7 @@ module App =
                     ),
                     clearButton,
                     undoButton,
-                    redoButton) 
+                    redoButton)
                 )|]
 
     type TodoAppProps = {model : TodoRepository}

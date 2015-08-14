@@ -26,7 +26,7 @@ module App =
             if String.IsNullOrEmpty v |> not then
                 c.setState {editingText = v}
                 Message.publish "todo.view.editDone" ()
-                Message.publish "tood.save" (c.props.todo.id, c.state.editingText)
+                Message.publish "todo.save" (c.props.todo.id, c.state.editingText)
             else
                 Message.publish "todo.remove" c.props.todo.id
 

@@ -66,6 +66,8 @@ let generate expr =
                 "window.mui = require('material-ui');\n" +
                 "var ThemeManager = new window.mui.Styles.ThemeManager();\n" +
                 "var Router5 = require('router5').Router5;\n" +
+                "var injectTapEventPlugin = require('react-tap-event-plugin');\n" +
+                "injectTapEventPlugin();\n" +
                 code
     File.WriteAllText(clientJs, code')
 

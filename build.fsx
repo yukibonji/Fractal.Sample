@@ -4,6 +4,7 @@
 #r "packages/FunScript.TypeScript.Binding.lib/lib/net40/FunScript.TypeScript.Binding.lib.dll"
 #r "packages/FunScript.TypeScript.Binding.jquery/lib/net40/FunScript.TypeScript.Binding.jquery.dll"
 #r "lib/Fractal.dll"
+#r "packages/Suave/lib/net40/Suave.dll"
 
 #load "client/App.fsx"
 #load "client/Main.fsx"
@@ -13,6 +14,8 @@ open Fake
 open Fake.AssemblyInfoFile
 open System
 open System.IO
+
+let appPath = combinePaths __SOURCE_DIRECTORY__ "app"
 
 Target "Default" DoNothing
 
@@ -34,6 +37,24 @@ Target "Browserify" (fun _ ->
             info.WorkingDirectory <- "app"
             info.Arguments <- "client.js > app.js -r material-ui") System.TimeSpan.MaxValue
     if result <> 0 then failwithf "Error during running browserify "
+)
+
+open Suave
+open Suave.Web
+open Suave.Http
+open Suave.Http.Applicatives
+open Suave.Http.Files
+open Suave.Logging
+
+Target "RunServer" (fun _ ->
+    let index = combinePaths appPath "index.html"
+    let app = choose [ GET >>= choose [ path "/" >>= file index
+                                        pathRegex "(.*)\.css" >>= browseHome
+                                        pathRegex "(.*)\.js" >>= browseHome
+                                      ] ]
+    let config = { defaultConfig with homeFolder = Some appPath; logger = Loggers.ConsoleWindowLogger LogLevel.Verbose }
+
+    startWebServer config app
 )
 
 

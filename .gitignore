@@ -199,3 +199,4 @@ paket.exe
 app.js
 client.js
 paket-files/
+.fake/

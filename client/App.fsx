@@ -14,6 +14,9 @@ module App =
     type TodoItemProps = {todo : Todo; editing : bool}
     type todoItem = FractalComponent<TodoItemProps, TodoItemState>
 
+    let mutable router : Router option = None
+
+
     module TodoItemHandlers =
         let onToggle (c : todoItem) (e : FormEvent) =
             Message.publish "todo.toggle" c. props.todo.id
@@ -110,11 +113,11 @@ module App =
                     ),
                     DOM.ul( [| ClassName "filters" |],
                         DOM.li( [||],
-                            DOM.a( [| Href "#/"; ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "All"),
+                            DOM.button( [| OnClick (fun _ -> router |> Option.iter (fun r -> r.navigate "all" |> ignore )); ClassName (if c.props.nowShowing = FilterTodo.All then "selected" else "" ) |]  , "All"),
                             " ",
-                            DOM.a( [| Href "#/active"; ClassName (if c.props.nowShowing = FilterTodo.Active then "selected" else "" ) |]  , "Active"),
+                            DOM.button( [| OnClick (fun _ -> router |> Option.iter (fun r -> r.navigate "active" |> ignore )); ClassName (if c.props.nowShowing = FilterTodo.Active then "selected" else "" ) |]  , "Active"),
                             " ",
-                            DOM.a( [|Href "#/completed"; ClassName (if c.props.nowShowing = FilterTodo.Completed then "selected" else "" ) |]  , "Completed")
+                            DOM.button( [| OnClick (fun _ -> router |> Option.iter (fun r -> r.navigate "completed" |> ignore )); ClassName (if c.props.nowShowing = FilterTodo.Completed then "selected" else "" ) |]  , "Completed")
                         )
                     ),
                     clearButton,
@@ -155,13 +158,27 @@ module App =
                 Message.subscribe "todo.repository.changed" (fun n ->
                     c.setState {c.state with todos = c.props.model.getState () |> List.toArray}
                 ) |> ignore
+
+                router <- Router.Create([| {name = "all"; path = "/"; children = [||]}
+                                           {name = "active"; path = "/active"; children = [||]}
+                                           {name = "completed"; path = "/completed"; children = [||]} |])
+                                .addRouteListener("all", fun _ -> c.setState {c.state with nowShowing = FilterTodo.All})
+                                .addRouteListener("active", fun _ -> c.setState {c.state with nowShowing = FilterTodo.Active})
+                                .addRouteListener("completed", fun _ -> c.setState {c.state with nowShowing = FilterTodo.Completed})
+                                .start()
+                                |> Some
             )
 
             Render (fun (c : todoApp) ->
                 let todos = c.state.todos
-                let todoItems = todos |> Array.map(fun t ->
-                    let ed = if c.state.editing.IsSome then c.state.editing.Value = t.id else false
-                    TodoItem {todo = t; editing = ed }  )
+                let todoItems = todos |> Array.filter (fun t ->
+                                            match c.state.nowShowing with
+                                            | All -> true
+                                            | Active -> t.completed |> not
+                                            | Completed -> t.completed)
+                                      |> Array.map(fun t ->
+                                            let ed = if c.state.editing.IsSome then c.state.editing.Value = t.id else false
+                                            TodoItem {todo = t; editing = ed }  )
                 let activeCount = todos |> Array.fold (fun acc t ->
                     if t.completed then acc else acc + 1 ) 0
                 let completedCount = todos.Length - activeCount

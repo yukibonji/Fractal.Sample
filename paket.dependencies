@@ -4,4 +4,5 @@ nuget FAKE
 nuget FunScript
 nuget FunScript.TypeScript.Binding.jquery
 nuget FunScript.TypeScript.Binding.lib
+nuget Npm.js
 nuget Suave

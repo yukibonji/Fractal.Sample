@@ -22,11 +22,13 @@ Target "Default" DoNothing
 Target "BuildClient" (fun _ -> Fractal.Sample.Generator.generate "app/client.js")
 
 Target "NpmInstall" (fun _ ->
+    let npm = __SOURCE_DIRECTORY__ @@ "packages/Npm.js/tools/npm.cmd"
     let result = ExecProcess (fun info ->
-            info.FileName <- "./npm.cmd"
+            info.FileName <- npm
+            info.WorkingDirectory <- "app"
             info.Arguments <- "install") System.TimeSpan.MaxValue
     if result <> 0 then failwithf "Error during running npm "
-) //TODO: FIX IT
+)
 
 Target "Browserify" (fun _ ->
     let browserify = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) @@ "npm" @@ "browserify.cmd"
@@ -59,7 +61,7 @@ Target "RunServer" (fun _ ->
 
 
 "BuildClient"
-//==> "NpmInstall"
+  ==> "NpmInstall"
   ==> "Browserify"
   ==> "Default"
 

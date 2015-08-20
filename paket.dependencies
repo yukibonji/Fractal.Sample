@@ -1,6 +1,7 @@
 source https://nuget.org/api/v2
 
 nuget FAKE
+nuget FSharp.Compiler.Service
 nuget FunScript
 nuget FunScript.TypeScript.Binding.jquery
 nuget FunScript.TypeScript.Binding.lib

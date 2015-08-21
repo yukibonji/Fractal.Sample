@@ -1,9 +1,12 @@
+#r "packages/FAKE/tools/Microsoft.Web.XmlTransform.dll"
+#r "packages/FAKE/tools/Newtonsoft.Json.dll"
+#r "packages/FAKE/tools/NuGet.Core.dll"
 #r "packages/FAKE/tools/FakeLib.dll"
 #r "packages/Suave/lib/net40/Suave.dll"
 #r "packages/FSharp.Compiler.Service/lib/net45/FSharp.Compiler.Service.dll"
 
-#r "packages/FunScript/lib/net40/FunScript.dll"
 #r "packages/FunScript/lib/net40/FunScript.Interop.dll"
+#r "packages/FunScript/lib/net40/FunScript.dll"
 #r "packages/FunScript.TypeScript.Binding.lib/lib/net40/FunScript.TypeScript.Binding.lib.dll"
 #r "packages/FunScript.TypeScript.Binding.jquery/lib/net40/FunScript.TypeScript.Binding.jquery.dll"
 #r "lib/Fractal.dll"
@@ -36,6 +39,18 @@ let clientJs = combinePaths appPath "client.js"
 
 let sbOut = new Text.StringBuilder()
 let sbErr = new Text.StringBuilder()
+let getNpmFileName =
+  match isUnix with
+    | true -> "/usr/local/bin/npm"
+    | _ -> __SOURCE_DIRECTORY__ @@ "packages/Npm.js/tools/npm.cmd"
+let getBrowserifyFileName =
+  match isUnix with
+    | true -> "sh"
+    | _ -> Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) @@ "npm" @@ "browserify.cmd"
+let getBrowserifyArguments =
+  match isUnix with
+    | true -> "browserify.sh"
+    | _ -> "client.js > app.js -r material-ui"
 
 let fsiSession =
   let inStream = new StringReader("")
@@ -72,21 +87,21 @@ let generate expr =
     File.WriteAllText(clientJs, code')
 
 let npmInstall () =
-    let npm = __SOURCE_DIRECTORY__ @@ "packages/Npm.js/tools/npm.cmd"
+    let npmFileName = getNpmFileName
     let result = ExecProcess (fun info ->
-            info.FileName <- npm
+            info.FileName <- npmFileName
             info.WorkingDirectory <- appPath
             info.Arguments <- "install") System.TimeSpan.MaxValue
     if result <> 0 then failwithf "Error during running npm "
 
 let browserify () =
-    let browserify = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) @@ "npm" @@ "browserify.cmd"
-
+    let browserifyFileName = getBrowserifyFileName
+    let arguments = getBrowserifyArguments
 
     let result = ExecProcess (fun info ->
-            info.FileName <- browserify
+            info.FileName <- browserifyFileName
             info.WorkingDirectory <- appPath
-            info.Arguments <- "client.js > app.js -r material-ui") System.TimeSpan.MaxValue
+            info.Arguments <- arguments) System.TimeSpan.MaxValue
     if result <> 0 then failwithf "Error during running browserify "
 
 Target "Default" DoNothing

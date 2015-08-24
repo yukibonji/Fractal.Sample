@@ -1,5 +1,5 @@
-#r "../packages/FunScript/lib/net40/FunScript.dll"
 #r "../packages/FunScript/lib/net40/FunScript.Interop.dll"
+#r "../packages/FunScript/lib/net40/FunScript.dll"
 #r "../packages/FunScript.TypeScript.Binding.lib/lib/net40/FunScript.TypeScript.Binding.lib.dll"
 #r "../packages/FunScript.TypeScript.Binding.jquery/lib/net40/FunScript.TypeScript.Binding.jquery.dll"
 #r "../lib/Fractal.dll"

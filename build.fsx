@@ -107,12 +107,13 @@ Target "RunServer" (fun _ ->
 
     use watcher = !! (__SOURCE_DIRECTORY__ @@ "client\*.fsx") |> WatchChanges (fun _ ->
         reloadScript() |> Option.iter generate
-        npmInstall ()
         browserify ()
         printfn "Regenerate Completed"
         )
 
-
+    use npmWatcher = !!  (__SOURCE_DIRECTORY__ @@ "app\package.json") |> WatchChanges (fun _ ->
+        npmInstall ()
+        )
 
     System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite)
 )
@@ -122,5 +123,6 @@ Target "RunServer" (fun _ ->
   ==> "NpmInstall"
   ==> "Browserify"
   ==> "Default"
+  ==> "RunServer"
 
 RunTargetOrDefault "Default"
